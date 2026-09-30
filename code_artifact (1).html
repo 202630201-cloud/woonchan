@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수행평가 스마트 알리미</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            --accent: #f59e0b;
+            --bg-gradient: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #f3e8ff 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #0f172a;
+            --text-sub: #475569;
+            --border-color: rgba(226, 232, 240, 0.9);
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: 30px 16px;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 36px 28px;
+            border-radius: 24px;
+            box-shadow: 0 20px 45px rgba(79, 70, 229, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            position: relative;
+        }
+
+        .header-title {
+            text-align: center;
+            color: var(--text-main);
+            font-size: 1.85rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-sub);
+            margin-bottom: 28px;
+            font-size: 0.95rem;
+        }
+
+        /* 클릭 가능한 1, 2, 3단계 내비게이션 */
+        .stepper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .step-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1.5px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+
+        .step-pill:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.15);
+            background: #ffffff;
+        }
+
+        .step-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #94a3b8;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            transition: all 0.25s ease;
+        }
+
+        .step-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-sub);
+        }
+
+        .step-pill.active {
+            background: var(--primary-gradient);
+            border-color: transparent;
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .step-pill.active .step-num {
+            background: #ffffff;
+            color: var(--primary);
+        }
+
+        .step-pill.active .step-label {
+            color: #ffffff;
+        }
+
+        .step-pill.completed {
+            border-color: var(--primary-light);
+            background: rgba(238, 242, 255, 0.9);
+        }
+
+        .step-pill.completed .step-num {
+            background: var(--primary-light);
+            color: #ffffff;
+        }
+
+        .step-pill.completed .step-label {
+            color: var(--primary-light);
+        }
+
+        .step-divider {
+            width: 20px;
+            height: 2px;
+            background: #cbd5e1;
+        }
+
+        .step {
+            animation: fadeIn 0.35s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        label {
+            font-weight: 700;
+            display: block;
+            margin-bottom: 8px;
+            color: #334155;
+            font-size: 0.95rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 0.98rem;
+            margin-bottom: 18px;
+            background-color: #ffffff;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+            outline: none;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.28);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(79, 70, 229, 0.38);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            padding: 13px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .assessment-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            padding: 22px;
+            border-radius: 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.03);
+        }
+
+        .assessment-card h3 {
+            color: var(--primary);
+            font-size: 1.15rem;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notification-control {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border: 1.5px solid #c7d2fe;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .noti-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .noti-info {
+            font-size: 0.9rem;
+            color: #3730a3;
+            line-height: 1.4;
+        }
+
+        .btn-group-mini {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-mini {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-mini:hover {
+            background: #4338ca;
+        }
+
+        .btn-mini.test {
+            background: #059669;
+        }
+
+        .btn-mini.test:hover {
+            background: #047857;
+        }
+
+        .priority-info-box {
+            background: #fffbebf8;
+            border: 1px solid #fde68a;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 0.88rem;
+            color: #92400e;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dashboard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .dashboard-card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.04);
+            border-left: 6px solid var(--primary);
+            border-top: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .dashboard-card.high-priority {
+            border-left-color: #ef4444;
+            background: linear-gradient(to right, #fff5f5, #ffffff 15%);
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+        }
+
+        .priority-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            font-size: 0.78rem;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+        }
+
+        .card-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .d-day-badge {
+            background: var(--danger);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 0.88rem;
+            white-space: nowrap;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.22);
+        }
+
+        .d-day-badge.warning {
+            background: var(--warning);
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.22);
+        }
+
+        .d-day-badge.safe {
+            background: var(--success);
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.22);
+        }
+
+        .timer-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: var(--danger);
+            font-weight: 800;
+            font-size: 1.05rem;
+            padding: 10px 16px;
+            border-radius: 12px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 12px;
+            background: #f8fafc;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 0.92rem;
+            color: #475569;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .confidence-bar-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .confidence-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .confidence-bar-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            border-radius: 10px;
+        }
+
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 360px;
+            width: calc(100% - 40px);
+            pointer-events: none;
+        }
+
+        .toast {
+            pointer-events: auto;
+            background: #1e1b4b;
+            color: #ffffff;
+            padding: 16px 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.15);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            animation: slideIn 0.35s ease-out forwards;
+        }
+
+        .toast-icon {
+            font-size: 1.4rem;
+        }
+
+        .toast-body h4 {
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            color: #a5b4fc;
+        }
+
+        .toast-body p {
+            font-size: 0.88rem;
+            line-height: 1.35;
+            color: #e2e8f0;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 16px 10px; }
+            .container { padding: 24px 16px; }
+            .stepper { gap: 6px; }
+            .step-pill { padding: 8px 12px; }
+            .step-label { font-size: 0.78rem; }
+            .step-divider { width: 10px; }
+            .info-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<div class="container">
+    <h1 class="header-title">📝 수행평가 스마트 알리미</h1>
+    <p class="subtitle">마감일과 자신감을 분석한 스마트 우선순위 D-Day 알림</p>
+
+    <!-- 1, 2, 3단계 클릭 내비게이션 -->
+    <div class="stepper">
+        <div class="step-pill active" id="pill-1" onclick="navigateToStep(1)" title="1단계: 개수 입력으로 이동">
+            <span class="step-num">1</span>
+            <span class="step-label">개수 입력</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step-pill" id="pill-2" onclick="navigateToStep(2)" title="2단계: 정보 작성으로 이동">
+            <span class="step-num">2</span>
+            <span class="step-label">정보 작성</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step-pill" id="pill-3" onclick="navigateToStep(3)" title="3단계: 수행 목록으로 이동">
+            <span class="step-num">3</span>
+            <span class="step-label">수행 목록</span>
+        </div>
+    </div>
+
+    <!-- 1단계: 수행평가 개수 입력 -->
+    <div id="step-1" class="step">
+        <label for="count-input">오늘 등록할 수행평가는 몇 개인가요?</label>
+        <input type="number" id="count-input" min="1" max="20" placeholder="예: 3" value="3">
+        <button class="btn-primary" onclick="generateForms()">다음 단계로 이동 ➔</button>
+        <button class="btn-secondary" onclick="loadDemoData()" style="margin-top: 12px;">⚡ 예시 데이터 바로 불러오기</button>
+    </div>
+
+    <!-- 2단계: 수행평가 상세 정보 입력 -->
+    <div id="step-2" class="step hidden">
+        <form id="assessment-form">
+            <div id="form-container"></div>
+            <button type="button" class="btn-primary" onclick="saveAndShowDashboard()">
+                🔔 수행평가 등록 및 알림 설정하기
+            </button>
+        </form>
+    </div>
+
+    <!-- 3단계: 대시보드 -->
+    <div id="step-3" class="step hidden">
+        <div class="notification-control">
+            <div class="noti-header">
+                <div class="noti-info">
+                    <strong>🔔 듀얼 수행 공지 알림 작동 중</strong>
+                    <div>수행평가 <strong>3일 전</strong> 및 <strong>1일 전(하루 전)</strong>에 시스템 푸시 및 앱 내부 알림으로 공지됩니다.</div>
+                </div>
+                <div class="btn-group-mini">
+                    <button class="btn-mini" onclick="requestNotiPermission()">권한 허용</button>
+                    <button class="btn-mini test" onclick="triggerTestNotification()">🔔 알림 즉시 테스트</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="priority-info-box">
+            💡 <strong>스마트 정렬 안내:</strong> [1순위: 마감일 임박순] ➔ [2순위: 준비 자신감 낮은순]으로 자동 배열되어 우선 대비 과목이 상단에 표시됩니다.
+        </div>
+
+        <div id="dashboard-container" class="dashboard-list"></div>
+
+        <button onclick="resetAll()" class="btn-secondary" style="margin-top: 24px;">
+            🔄 새로 등록하기
+        </button>
+    </div>
+</div>
+
+<script>
+    let assessments = [];
+    let timerInterval = null;
+    let currentStep = 1;
+
+    function playAlertSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+            osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
+            
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.start();
+            osc.stop(ctx.currentTime + 0.4);
+        } catch (e) {
+            console.log("Audio play unsupported or blocked:", e);
+        }
+    }
+
+    function showToast(title, message) {
+        playAlertSound();
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `
+            <div class="toast-icon">📢</div>
+            <div class="toast-body">
+                <h4>${title}</h4>
+                <p>${message}</p>
+            </div>
+        `;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
+
+    function updateStepperUI(step) {
+        currentStep = step;
+        for (let i = 1; i <= 3; i++) {
+            const pill = document.getElementById(`pill-${i}`);
+            pill.classList.remove('active', 'completed');
+            if (i === step) {
+                pill.classList.add('active');
+            } else if (i < step) {
+                pill.classList.add('completed');
+            }
+        }
+
+        document.getElementById('step-1').classList.add('hidden');
+        document.getElementById('step-2').classList.add('hidden');
+        document.getElementById('step-3').classList.add('hidden');
+
+        document.getElementById(`step-${step}`).classList.remove('hidden');
+    }
+
+    function navigateToStep(targetStep) {
+        if (targetStep === 2) {
+            const container = document.getElementById('form-container');
+            if (!container.children.length) {
+                generateForms();
+            } else {
+                updateStepperUI(2);
+            }
+        } else if (targetStep === 3) {
+            if (assessments.length === 0) {
+                loadDemoData();
+            } else {
+                updateStepperUI(3);
+                renderDashboard();
+            }
+        } else {
+            updateStepperUI(1);
+        }
+    }
+
+    function generateForms() {
+        const countInput = document.getElementById('count-input');
+        const count = parseInt(countInput.value);
+        if (!count || count < 1) {
+            alert('1개 이상의 숫자를 입력해주세요!');
+            return;
+        }
+
+        const container = document.getElementById('form-container');
+        container.innerHTML = '';
+
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const defaultDateStr = tomorrow.toISOString().split('T')[0];
+
+        for (let i = 1; i <= count; i++) {
+            const card = document.createElement('div');
+            card.className = 'assessment-card';
+            card.innerHTML = `
+                <h3><span>📌</span> 수행평가 #${i}</h3>
+                
+                <label>과목명</label>
+                <input type="text" class="subject" placeholder="예: 국어, 수학, 영어" required>
+
+                <label>날짜 (달력에서 선택)</label>
+                <input type="date" class="date" value="${defaultDateStr}" required>
+
+                <label>교시</label>
+                <input type="text" class="period" placeholder="예: 3교시" required>
+
+                <label>필요한 준비물</label>
+                <textarea class="supplies" rows="2" placeholder="예: 프린트물, 필기도구, 태블릿" required></textarea>
+
+                <label>자신있는 정도 (1: 매우 긴장됨 ~ 10: 완벽함)</label>
+                <select class="confidence" required>
+                    ${Array.from({length: 10}, (_, index) => `<option value="${index + 1}" ${index === 4 ? 'selected' : ''}>${index + 1}점 ${index + 1 <= 3 ? '(낮음 - 집중대비)' : ''}</option>`).join('')}
+                </select>
+            `;
+            container.appendChild(card);
+        }
+
+        updateStepperUI(2);
+    }
+
+    function saveAndShowDashboard() {
+        const cards = document.querySelectorAll('.assessment-card');
+        assessments = [];
+        let isValid = true;
+
+        cards.forEach((card) => {
+            const subject = card.querySelector('.subject').value.trim();
+            const dateVal = card.querySelector('.date').value;
+            const period = card.querySelector('.period').value.trim();
+            const supplies = card.querySelector('.supplies').value.trim();
+            const confidence = parseInt(card.querySelector('.confidence').value);
+
+            if (!subject || !dateVal || !period || !supplies) {
+                isValid = false;
+            }
+
+            const targetDate = new Date(dateVal + 'T00:00:00');
+
+            assessments.push({
+                id: Date.now() + Math.random(),
+                subject,
+                date: targetDate,
+                dateString: dateVal,
+                period,
+                supplies,
+                confidence,
+                notified3Days: false,
+                notified1Day: false
+            });
+        });
+
+        if (!isValid) {
+            alert('모든 항목을 채워주세요!');
+            return;
+        }
+
+        requestNotiPermission();
+        updateStepperUI(3);
+        renderDashboard();
+    }
+
+    function requestNotiPermission() {
+        if ("Notification" in window) {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    showToast("🔔 알림 설정 완료", "브라우저 푸시 알림이 성공적으로 설정되었습니다.");
+                } else {
+                    showToast("📢 알림 모드 안내", "시스템 알림이 거부되어 앱 내부 팝업 알림으로 자동 전환됩니다.");
+                }
+            });
+        } else {
+            showToast("📢 알림 모드 안내", "현재 브라우저는 앱 내부 팝업 알림으로 지원됩니다.");
+        }
+    }
+
+    function triggerTestNotification() {
+        sendNotification(
+            "[알림 테스트] 수행평가 알리미",
+            "🎉 알림 기능이 정상적으로 작동하고 있습니다! 3일 전 및 하루 전에 공지됩니다."
+        );
+    }
+
+    function loadDemoData() {
+        const now = new Date();
+        
+        const d1 = new Date(now.getTime() + (1 * 24 * 60 * 60 * 1000));
+        const d2 = new Date(now.getTime() + (1 * 24 * 60 * 60 * 1000));
+        const d3 = new Date(now.getTime() + (5 * 24 * 60 * 60 * 1000));
+
+        assessments = [
+            {
+                id: 1,
+                subject: '수학 파이썬 활용 방정식 풀이',
+                date: d1,
+                dateString: d1.toISOString().split('T')[0],
+                period: '2교시',
+                supplies: '노트북 or 태블릿, 수학 노트',
+                confidence: 3,
+                notified3Days: false,
+                notified1Day: false
+            },
+            {
+                id: 2,
+                subject: '영어 단어 및 본문 암기 평가',
+                date: d2,
+                dateString: d2.toISOString().split('T')[0],
+                period: '4교시',
+                supplies: '영단어장, 필기도구',
+                confidence: 8,
+                notified3Days: true,
+                notified1Day: false
+            },
+            {
+                id: 3,
+                subject: '국어 독서록 제출 및 발표',
+                date: d3,
+                dateString: d3.toISOString().split('T')[0],
+                period: '3교시',
+                supplies: '독서 활동지, 원고',
+                confidence: 4,
+                notified3Days: false,
+                notified1Day: false
+            }
+        ];
+
+        updateStepperUI(3);
+        renderDashboard();
+    }
+
+    function sortAssessmentsSmart() {
+        assessments.sort((a, b) => {
+            const timeDiff = a.date - b.date;
+            if (timeDiff !== 0) {
+                return timeDiff;
+            }
+            return a.confidence - b.confidence;
+        });
+    }
+
+    function renderDashboard() {
+        const container = document.getElementById('dashboard-container');
+        container.innerHTML = '';
+
+        if (assessments.length === 0) {
+            container.innerHTML = `<p style="text-align: center; color: #64748b; padding: 40px 0;">등록된 수행평가가 없습니다.</p>`;
+            return;
+        }
+
+        sortAssessmentsSmart();
+
+        assessments.forEach((item, index) => {
+            const isHighPriority = index === 0 || item.confidence <= 3;
+
+            const card = document.createElement('div');
+            card.className = `dashboard-card ${isHighPriority ? 'high-priority' : ''}`;
+            card.id = `card-${item.id}`;
+            card.innerHTML = `
+                ${isHighPriority ? '<div class="priority-tag">⚠️ 우선 준비 과목 (마감 임박 / 낮은 자신감)</div>' : ''}
+                <div class="card-header-flex">
+                    <span class="card-title">${item.subject}</span>
+                    <span class="d-day-badge" id="badge-${item.id}">계산중</span>
+                </div>
+                <div class="timer-box" id="timer-${item.id}">
+                    ⏳ 남은 시간 계산 중...
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        📍 <strong>일시:</strong> ${item.dateString} (${item.period})
+                    </div>
+                    <div class="info-item">
+                        🎒 <strong>준비물:</strong> ${item.supplies}
+                    </div>
+                    <div class="info-item" style="grid-column: 1 / -1;">
+                        <div class="confidence-bar-wrapper">
+                            <span>🔥 <strong>자신감:</strong> ${item.confidence}/10</span>
+                            <div class="confidence-bar-bg">
+                                <div class="confidence-bar-fill" style="width: ${item.confidence * 10}%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        if (timerInterval) clearInterval(timerInterval);
+        updateTimersAndCheckNotifications();
+        timerInterval = setInterval(updateTimersAndCheckNotifications, 1000);
+    }
+
+    function updateTimersAndCheckNotifications() {
+        const now = new Date();
+
+        assessments.forEach((item) => {
+            const target = item.date;
+            const diffMs = target - now;
+            
+            const timerEl = document.getElementById(`timer-${item.id}`);
+            const badgeEl = document.getElementById(`badge-${item.id}`);
+
+            if (!timerEl || !badgeEl) return;
+
+            if (diffMs <= 0) {
+                timerEl.innerText = "✅ 수행평가가 종료되었거나 당일입니다!";
+                timerEl.style.color = "#64748b";
+                timerEl.style.backgroundColor = "#f1f5f9";
+                timerEl.style.borderColor = "#e2e8f0";
+                badgeEl.innerText = "D-Day";
+                badgeEl.className = "d-day-badge";
+                return;
+            }
+
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const diffHours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+            const diffMinutes = Math.floor((diffMs / (1000 * 60)) % 60);
+            const diffSeconds = Math.floor((diffMs / 1000) % 60);
+
+            if (diffDays === 0) {
+                badgeEl.innerText = `D-DAY`;
+                badgeEl.className = "d-day-badge";
+            } else {
+                badgeEl.innerText = `D-${diffDays}`;
+                badgeEl.className = diffDays <= 3 ? "d-day-badge warning" : "d-day-badge safe";
+            }
+
+            timerEl.innerText = `⏳ 남은 시간: ${diffDays}일 ${diffHours}시간 ${diffMinutes}분 ${diffSeconds}초`;
+
+            const hoursLeft = diffMs / (1000 * 60 * 60);
+
+            if (hoursLeft <= 72 && hoursLeft > 48 && !item.notified3Days) {
+                sendNotification(
+                    `[수행평가 3일 전 공지] ${item.subject}`,
+                    `📅 ${item.subject} 수행평가가 3일 남았습니다!\n🎒 준비물: ${item.supplies}`
+                );
+                item.notified3Days = true;
+            }
+
+            if (hoursLeft <= 24 && !item.notified1Day) {
+                sendNotification(
+                    `[수행평가 하루 전 공지!] ${item.subject}`,
+                    `🚨 내일은 ${item.subject} 수행평가날입니다!\n🎒 준비물 꼭 챙기세요: ${item.supplies}`
+                );
+                item.notified1Day = true;
+            }
+        });
+    }
+
+    function sendNotification(title, body) {
+        showToast(title, body.replace('\n', ' '));
+
+        if ("Notification" in window && Notification.permission === "granted") {
+            try {
+                new Notification(title, {
+                    body: body,
+                    icon: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
+                });
+            } catch (e) {
+                console.log("Notification send fallback:", e);
+            }
+        }
+    }
+
+    function resetAll() {
+        if(confirm("등록된 수행평가 목록을 초기화하시겠습니까?")) {
+            assessments = [];
+            if(timerInterval) clearInterval(timerInterval);
+            document.getElementById('count-input').value = '3';
+            document.getElementById('form-container').innerHTML = '';
+            updateStepperUI(1);
+        }
+    }
+</script>
+
+</body>
+</html>
